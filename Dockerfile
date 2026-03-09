@@ -17,6 +17,7 @@ RUN apk add --no-cache \
     make \
     autoconf \
     supervisor \
+    bash \
     && rm -rf /var/cache/apk/*
 
 # Install PHP extensions
@@ -27,11 +28,7 @@ RUN docker-php-ext-configure gd --with-jpeg --with-webp \
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Install Node.js
-RUN curl -fsSL https://unpkg.com/nvm@v0.39.7/install.sh | bash \
-    && . ~/.nvm/nvm.sh \
-    && nvm install 20 \
-    && nvm use 20 \
-    && nvm alias default 20
+RUN apk add --no-cache nodejs npm
 
 # Copy existing application directory
 COPY . .
