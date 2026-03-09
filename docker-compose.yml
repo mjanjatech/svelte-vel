@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        image: svelte-vel-app
+        container_name: svelte-vel-app
+        restart: unless-stopped
+        working_dir: /var/www/html
+        volumes:
+            - ./:/var/www/html
+            - ./docker/logs:/var/log
+        networks:
+            - svelte-vel-network
+        depends_on:
+            - mysql
+            - redis
+
+    nginx:
+        image: nginx:alpine
+        container_name: svelte-vel-nginx
+        restart: unless-stopped
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - ./:/var/www/html
+            - ./docker/nginx/conf.d:/etc/nginx/conf.d
+            - ./docker/logs/nginx:/var/log/nginx
+        networks:
+            - svelte-vel-network
+        depends_on:
+            - app
+
+    mysql:
+        image: mysql:8.0
+        container_name: svelte-vel-mysql
+        restart: unless-stopped
+        environment:
+            MYSQL_DATABASE: ${DB_DATABASE:-sveltevel}
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-password}
+            MYSQL_PASSWORD: ${DB_PASSWORD:-password}
+            MYSQL_USER: ${DB_USERNAME:-sveltevel}
+        volumes:
+            - ./docker/mysql:/var/lib/mysql
+            - ./docker/logs/mysql:/var/log/mysql
+        networks:
+            - svelte-vel-network
+        ports:
+            - "3306:3306"
+
+    redis:
+        image: redis:alpine
+        container_name: svelte-vel-redis
+        restart: unless-stopped
+        volumes:
+            - ./docker/redis:/data
+            - ./docker/logs/redis:/var/log/redis
+        networks:
+            - svelte-vel-network
+        ports:
+            - "6379:6379"
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: svelte-vel-phpmyadmin
+        restart: unless-stopped
+        environment:
+            PMA_HOST: mysql
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-password}
+        ports:
+            - "8080:80"
+        networks:
+            - svelte-vel-network
+        depends_on:
+            - mysql
+
+networks:
+    svelte-vel-network:
+        driver: bridge
