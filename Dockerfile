@@ -36,12 +36,8 @@ RUN curl -fsSL https://unpkg.com/nvm@v0.39.7/install.sh | bash \
 # Copy existing application directory
 COPY . .
 
-# Copy supervisord configuration
-COPY .docker/supervisord.conf /etc/supervisord.conf
-
-# Copy nginx configuration
-COPY .docker/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY .docker/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
+# Note: Configuration files (supervisord and nginx) are now mounted as volumes in docker-compose.yml
+# This allows for easier updates without rebuilding the entire Docker image
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
